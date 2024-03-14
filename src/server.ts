@@ -1,9 +1,7 @@
-// server.js
 import express from 'express';
 import AWS from 'aws-sdk'
 import dotenv from 'dotenv';
-//const express = require('express');
-//const AWS = require('aws-sdk');
+import crypto from "crypto"
 dotenv.config();
 const app = express();
 
@@ -12,38 +10,21 @@ AWS.config.update({
   region: process.env.AWS_REGION  
 });
 
-// const sqs = new AWS.SQS({ 
-//   region: `${process.env.AWS_REGION}`, 
-//   credentials: { 
-//     accessKeyId: `${process.env.AWS_ACCESS_KEY_ID}`,
-//     secretAccessKey: `${process.env.AWS_SECRET_ACCESS_KEY}`
-//   } 
-// });
 const sqs = new AWS.SQS()
-console.log(`${process.env.AWS_REGION}`)
-console.log(process.env.AWS_REGION)
-const queueUrl = process.env.SQS_URL
-
-app.get('/params', async(req, res) => {
-  console.log(`${process.env.AWS_QUEUE_URL}`)
-  console.log(process.env.AWS_SQS_URL)
-  res.json({ region1: `${process.env.AWS_REGION}`, region2: process.env.AWS_REGION })
-})//'YOUR_QUEUE_URL';
 
 app.post('/transactions', async (req, res) => {
-  const { idempotencyId, amount, type } = req.body;
-
-  // Validar payload
-  if (!idempotencyId || !amount || !type) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  const { amount, type } = req.body;  
+  
+  if (!amount || !type) {
+    return res.status(400).json({ error: 'Missing required fields: amount | type' });
   }
 
-  // Enviar transação para a SQS
-  const params = {
-    MessageBody: JSON.stringify({ idempotencyId, amount, type }),
-    QueueUrl: queueUrl,
-  };
+  if (type !== 'credit' && type !== 'debit') {
+    return res.status(400).json({ error: 'Invalid type. Should be or credit or debit' });
+  }
 
+  const idempotencyId = crypto.randomUUID();
+  
   try {
     await sqs.sendMessage({
       MessageBody: JSON.stringify({ idempotencyId, amount, type }),

@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: convem-transactions-container
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/usr/app
+    command: node ./dist/src/server.js
