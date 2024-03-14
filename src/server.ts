@@ -7,7 +7,7 @@ const app = express();
 
 app.use(express.json());
 AWS.config.update({ 
-  region: `${process.env.AWS_REGION}`  
+  region: 'us-east-1'//`${process.env.AWS_REGION}`  
 });
 console.log(`${process.env.AWS_REGION}`)
 const sqs = new AWS.SQS()
