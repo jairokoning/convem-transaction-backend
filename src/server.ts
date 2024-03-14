@@ -6,10 +6,18 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
+
+const REGION = `${process.env.AWS_REGION}`
+const SQS_URL = `${process.env.AWS_SQS_URL}`
+
 AWS.config.update({ 
-  region: 'us-east-1'//`${process.env.AWS_REGION}`  
+  region: 'us-east-1',//`${process.env.AWS_REGION}`  
+  credentials: {
+    accessKeyId: `${process.env.AWS_ACCESS_KEY_ID}`,
+    secretAccessKey: `${process.env.AWS_SECRET_ACCESS_KEY}`
+  }
 });
-console.log(`${process.env.AWS_REGION}`)
+console.log(REGION)
 const sqs = new AWS.SQS()
 
 app.post('/transactions', async (req, res) => {
@@ -26,9 +34,10 @@ app.post('/transactions', async (req, res) => {
   const idempotencyId = crypto.randomUUID();
   
   try {
+    console.log(SQS_URL)
     await sqs.sendMessage({
       MessageBody: JSON.stringify({ idempotencyId, amount, type }),
-      QueueUrl: `${process.env.AWS_SQS_URL}`,
+      QueueUrl: SQS_URL,
       
     }).promise();
     res.status(200).json({ message: 'Transaction queued successfully' });
