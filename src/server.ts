@@ -1,11 +1,13 @@
 import express from 'express';
+import cors from "cors";
 import AWS from 'aws-sdk'
 import dotenv from 'dotenv';
 import crypto from "crypto"
+
 dotenv.config();
 const app = express();
-
 app.use(express.json());
+app.use(cors());
 
 const REGION = `${process.env.AWS_REGION}`
 const SQS_URL = `${process.env.AWS_SQS_URL}`
